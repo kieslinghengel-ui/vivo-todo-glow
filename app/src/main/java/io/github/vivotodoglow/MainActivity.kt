@@ -164,7 +164,7 @@ class MainActivity : ComponentActivity() {
     }
     private fun showWidgetHelp() {
         AlertDialog.Builder(this).setTitle("添加桌面小组件")
-            .setMessage("OriginOS 3：回到桌面，在空白处长按或双指捏合，打开“原子组件 / 添加组件”。查找普通 Android 小组件、桌面挂件或应用组件列表中的“光点待办”，长按预览拖到桌面。入口名称因系统版本而异。\n\n默认占4×3格，请预留空位；添加后可长按拉大。最多10项，空间不足时上下滚动。\n\n系统自动添加无弹窗时，仍可使用上述手动入口。若列表仍找不到，覆盖安装后打开本应用一次，再重新进入桌面组件列表。无需卸载。")
+            .setMessage("OriginOS 3：回到桌面，在空白处长按或双指捏合，打开“原子组件 / 添加组件”。查找普通 Android 小组件、桌面挂件或应用组件列表中的“光点待办”，长按预览拖到桌面。入口名称因系统版本而异。\n\n目标占3列×7行，实际尺寸受桌面网格限制，请预留空位；添加后可长按拉大。最多10项，空间不足时上下滚动。\n\n系统自动添加无弹窗时，仍可使用上述手动入口。若列表仍找不到，覆盖安装后打开本应用一次，再重新进入桌面组件列表。无需卸载。")
             .setPositiveButton("前往桌面") { _, _ ->
                 startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME))
             }.setNegativeButton("知道了", null).show()
