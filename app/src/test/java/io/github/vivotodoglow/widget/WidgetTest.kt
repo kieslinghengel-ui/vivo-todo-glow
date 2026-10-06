@@ -37,6 +37,21 @@ import java.time.LocalDate
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class WidgetTest {
     private val context get() = ApplicationProvider.getApplicationContext<Context>()
+    @Test fun tenTasksFitNarrowTallPanelWithVisibleCompletionButtons() {
+        val root = render((1..10).map { TodoTask(it.toLong(), "任务 $it", it.toLong()) })
+        val density = context.resources.displayMetrics.density
+        val width = (240 * density).toInt()
+        val height = (660 * density).toInt()
+        root.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
+        root.layout(0, 0, width, height)
+        val tasks = root.findViewById<ListView>(R.id.widget_tasks)
+        assertEquals(10, tasks.childCount)
+        assertTrue(tasks.getChildAt(9).bottom <= tasks.height)
+        val row = tasks.getChildAt(0)
+        assertTrue(row.findViewById<View>(R.id.widget_task_body).width > 0)
+        assertTrue(row.findViewById<View>(R.id.widget_task_complete).right <= row.width)
+    }
     @Test fun pickerPreviewInflatesWithoutWidgetHostOrCollectionAdapter() {
         val root = android.widget.RemoteViews(context.packageName, R.layout.widget_preview)
             .apply(context, android.widget.FrameLayout(context))
