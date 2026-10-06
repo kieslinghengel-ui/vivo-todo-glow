@@ -4,6 +4,7 @@ import android.app.Application
 import io.github.vivotodoglow.data.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import io.github.vivotodoglow.widget.GlowWidgetProvider
 
 class GlowApp : Application() {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -16,12 +17,17 @@ class GlowApp : Application() {
         settings = SettingsStore(this)
         scope.launch {
             repository.cleanup()
-            repository.tasks.collect { snapshot.value = it }
+            repository.tasks.collect {
+                snapshot.value = it
+                GlowWidgetProvider.refresh(this@GlowApp, it)
+            }
         }
         scope.launch {
             while (isActive) {
-                val pending = snapshot.value.filter { it.deleteAfter != null }
-                if (pending.any { it.deleteAfter!! <= System.currentTimeMillis() }) repository.cleanup()
+                val pending = snapshot.value.filter { it.deleteAfter != null || it.hiddenUntil != null }
+                val time = System.currentTimeMillis()
+                if (pending.any { (it.deleteAfter != null && it.deleteAfter <= time) ||
+                        (it.hiddenUntil != null && it.hiddenUntil <= time) }) repository.cleanup()
                 delay(if (pending.isEmpty()) 1000 else 100)
             }
         }
