@@ -4,7 +4,7 @@
 
 <img src="docs/widget-preview.png" width="280" alt="桌面小组件布局预览" /> <img src="docs/panel-preview.png" width="280" alt="应用内任务管理和光粒子布局预览" />
 
-两张图片由 Android View 自动测试渲染，使用示例任务，非 vivo 真机截图。左图是桌面组件布局，右图是应用内任务管理页面。
+两张图片由 Android View 自动测试渲染，任务和日期为模拟环境数据，非 vivo 真机截图。左图是桌面组件布局，右图是应用内任务管理页面。另可查看 [粒子消散阶段图](docs/dissolve-preview.png)。
 
 ## 功能
 
