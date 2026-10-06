@@ -61,6 +61,13 @@ class GlowWidgetProvider : AppWidgetProvider() {
                     if (operation == "select" && widgetId > 0 && taskId > 0) {
                         context.getSharedPreferences("widget-selection", Context.MODE_PRIVATE)
                             .edit().putLong(widgetId.toString(), taskId).apply()
+                    } else if (operation == "complete") {
+                        val before = TaskPolicy.panel(app.repository.tasks.first())
+                        val index = before.indexOfFirst { it.id == taskId }
+                        if (index >= 0) {
+                            WidgetBurst.begin(before[index], index)
+                            if (!app.repository.remove(taskId)) WidgetBurst.discard(taskId)
+                        }
                     } else WidgetCommands.execute(app.repository, operation, taskId)
                     app.repository.cleanup()
                     refresh(context, app.repository.tasks.first())
@@ -90,7 +97,7 @@ class GlowWidgetProvider : AppWidgetProvider() {
             if (ids.isEmpty()) return
             ids.forEach { manager.updateAppWidget(it, views(context, it, tasks)) }
             val now = System.currentTimeMillis()
-            (tasks.mapNotNull { it.deleteAfter } + tasks.mapNotNull { it.hiddenUntil })
+            (tasks.mapNotNull { it.deleteAfter } + tasks.mapNotNull { it.hiddenUntil } + WidgetBurst.active(tasks, now).map { it.deadline })
                 .filter { it > now }.distinct().forEach { deadline ->
                     if (scheduledExpiries.add(deadline)) {
                         context.sendBroadcast(Intent(context, GlowWidgetProvider::class.java)
@@ -126,19 +133,12 @@ class GlowWidgetProvider : AppWidgetProvider() {
                 Intent(context, GlowWidgetProvider::class.java).setAction(ACTION_TASK).putExtra("widget_id", widgetId),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
             remote.setPendingIntentTemplate(R.id.widget_tasks, template)
-            val items = RemoteViews.RemoteCollectionItems.Builder().setHasStableIds(true).setViewTypeCount(1)
-            panel.forEach { task ->
-                val item = RemoteViews(packageName, R.layout.widget_task)
-                item.setTextViewText(R.id.widget_task_title, task.title)
-                val subtitle = taskSubtitle(task)
-                item.setTextViewText(R.id.widget_task_subtitle, subtitle)
-                item.setViewVisibility(R.id.widget_task_subtitle, if (subtitle.isEmpty()) View.GONE else View.VISIBLE)
-                item.setContentDescription(R.id.widget_task_complete, "完成：${task.title}")
-                item.setInt(R.id.widget_task_title, "setTextColor", if (task.id == selected?.id) 0xff81e5ef.toInt() else 0xffeffbff.toInt())
-                item.setOnClickFillInIntent(R.id.widget_task_body, Intent().putExtra("operation", "select").putExtra(EXTRA_TASK_ID, task.id))
-                item.setOnClickFillInIntent(R.id.widget_task_complete, Intent().putExtra("operation", "complete").putExtra(EXTRA_TASK_ID, task.id))
-                items.addItem(task.id, item)
+            val items = RemoteViews.RemoteCollectionItems.Builder().setHasStableIds(true).setViewTypeCount(2)
+            val entries = panel.map { it.id to taskViews(context, it, selected?.id) }.toMutableList()
+            WidgetBurst.active(tasks, now).forEach { burst ->
+                entries.add(burst.index.coerceIn(0, entries.size), burst.stableId to WidgetBurst.views(context, burst, now))
             }
+            entries.take(10).forEach { (id, item) -> items.addItem(id, item) }
             remote.setRemoteAdapter(R.id.widget_tasks, items.build())
             remote.setEmptyView(R.id.widget_tasks, R.id.widget_empty)
 
@@ -173,6 +173,20 @@ class GlowWidgetProvider : AppWidgetProvider() {
             remote.setRemoteAdapter(R.id.widget_undos, undos.build())
             remote.setViewLayoutHeight(R.id.widget_undos, minOf(pending.size, 2).coerceAtLeast(1) * 40f, TypedValue.COMPLEX_UNIT_DIP)
             return remote
+        }
+
+        private fun taskViews(context: Context, task: TodoTask, selectedId: Long?): RemoteViews {
+                val packageName = context.packageName
+                val item = RemoteViews(packageName, R.layout.widget_task)
+                item.setTextViewText(R.id.widget_task_title, task.title)
+                val subtitle = taskSubtitle(task)
+                item.setTextViewText(R.id.widget_task_subtitle, subtitle)
+                item.setViewVisibility(R.id.widget_task_subtitle, if (subtitle.isEmpty()) View.GONE else View.VISIBLE)
+                item.setContentDescription(R.id.widget_task_complete, "完成：${task.title}")
+                item.setInt(R.id.widget_task_title, "setTextColor", if (task.id == selectedId) 0xff81e5ef.toInt() else 0xffeffbff.toInt())
+                item.setOnClickFillInIntent(R.id.widget_task_body, Intent().putExtra("operation", "select").putExtra(EXTRA_TASK_ID, task.id))
+                item.setOnClickFillInIntent(R.id.widget_task_complete, Intent().putExtra("operation", "complete").putExtra(EXTRA_TASK_ID, task.id))
+                return item
         }
 
         private fun activity(context: Context, code: Int, intent: Intent) = PendingIntent.getActivity(context, code,

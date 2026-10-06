@@ -1,0 +1,4 @@
+<ViewFlipper xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_burst" android:layout_width="match_parent" android:layout_height="48dp"
+    android:autoStart="true" android:flipInterval="40" android:animateFirstView="false"
+    android:contentDescription="任务正在化为光粒子消散" />

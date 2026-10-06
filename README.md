@@ -1,6 +1,6 @@
 # 光点待办 · vivo-todo-glow
 
-适配 Android 13 及以上的中文本地待办，重点面向 vivo Y36m。2.1.0 使用真正的桌面小组件，保留 vivo 原桌面；任务与编辑页面使用同一份本地数据。
+适配 Android 13 及以上的中文本地待办，重点面向 vivo Y36m。2.2.0 使用真正的桌面小组件，保留 vivo 原桌面；任务与编辑页面使用同一份本地数据。
 
 <img src="docs/widget-preview.png" width="280" alt="桌面小组件布局预览" /> <img src="docs/panel-preview.png" width="280" alt="应用内任务管理和光粒子布局预览" />
 
@@ -20,17 +20,17 @@
 
 ## 桌面操作范围
 
-Android 小组件的手势主要是点击和纵向滚动，[官方说明](https://developer.android.com/develop/ui/views/appwidgets/overview#gestures)解释了桌面导航对小组件手势的限制。因此，本版在桌面提供直接完成、按钮排序、任务列表、日期、新增、编辑入口与撤销；粒子动画、自由拖动任务和长按任务菜单在打开的应用页面中完成。
+Android 小组件的手势主要是点击和纵向滚动，[官方说明](https://developer.android.com/develop/ui/views/appwidgets/overview#gestures)解释了桌面导航对小组件手势的限制。因此，本版在桌面提供直接完成、按钮排序、任务列表、日期、新增、编辑入口与撤销；桌面通过逐帧画面播放粒子动画；自由拖动任务和长按任务菜单在打开的应用页面中完成。
 
-如需在桌面原地自由拖动任务和播放自绘粒子动画，需要另做支持这些交互的桌面启动器。当前版本继续使用 vivo 原桌面，不替换系统桌面。
+如需在桌面原地自由拖动任务，需要另做支持这些交互的桌面启动器。当前版本继续使用 vivo 原桌面，不替换系统桌面。
 
 ## 下载与安装
 
-[2.1.0 下载页](https://github.com/kieslinghengel-ui/vivo-todo-glow/releases/tag/v2.1.0) · [安装包](https://github.com/kieslinghengel-ui/vivo-todo-glow/releases/download/v2.1.0/vivo-todo-glow-2.1.0.apk)
+[2.2.0 下载页](https://github.com/kieslinghengel-ui/vivo-todo-glow/releases/tag/v2.2.0) · [安装包](https://github.com/kieslinghengel-ui/vivo-todo-glow/releases/download/v2.2.0/vivo-todo-glow-2.2.0.apk)
 
 打开应用，点“＋ 添加到桌面”；如果系统未出现添加入口，在桌面空白处长按，进入“组件”或“原子组件”，找到“光点待办”并拖到桌面。详细步骤见 [安装说明](docs/安装说明.md)。
 
-2.1.0 不使用悬浮窗、使用情况访问、通知或无障碍权限。从正式 1.0.0 覆盖安装可保留原任务，不要先卸载。
+2.2.0 不使用悬浮窗、使用情况访问、通知或无障碍权限。从正式 1.0.0 覆盖安装可保留原任务，不要先卸载。
 
 ## 每日任务与撤销
 
@@ -68,7 +68,7 @@ Kotlin + Android Views；系统 `AppWidgetProvider` / `RemoteViews` 实现桌面
 
 [FloatingOverlay](https://github.com/florinzaicu/FloatingOverlay)、[ExplosionField](https://github.com/tyrantgit/ExplosionField) 和 [Tasks.org](https://github.com/tasks/tasks) 用于方案参考。本项目的任务与粒子实现独立编写，没有复制其源码。依赖及许可说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。项目使用 MIT 许可。
 
-## 2.1.0 添加兼容性修复
+## 2.2.0 添加兼容性修复
 
 针对 Android 13 / OriginOS 3 上点击添加无反应，检查桌面是否接受添加请求；不支持、拒绝或异常时显示手动添加说明。请求受理不会标记为已添加，实际添加数量在返回应用时刷新。始终提供「手动添加小组件 / 添加帮助」和前往桌面入口。
 
@@ -76,5 +76,13 @@ Kotlin + Android Views；系统 `AppWidgetProvider` / `RemoteViews` 实现桌面
 
 尚未连接 vivo Y36m 真机，无法确认该桌面是否显示自动添加弹窗；不以自动测试代替真机结论。
 
-## 2.1.0 桌面直接操作
-点任务右侧 ✓ 直接完成；上方立即显示5秒倒计时和撤销按钮。连续完成多项时，撤销列表可分别撤销。点任务文字选中（文字变青色），使用底部 ↑ / ↓ 排序，点“编辑”修改选中任务。桌面完成不再打开应用，也不会播放桌面粒子动画。应用内仍支持自由拖拽和粒子效果。
+## 2.2.0 桌面直接操作
+点任务右侧 ✓ 直接完成；上方立即显示5秒倒计时和撤销按钮。连续完成多项时，撤销列表可分别撤销。点任务文字选中（文字变青色），使用底部 ↑ / ↓ 排序，点“编辑”修改选中任务。桌面完成不打开应用，并在原任务位置播放约0.8秒青白光粒子消散。应用内仍支持自由拖拽和粒子效果。
+
+## 2.2.0 小组件粒子消散
+
+小组件点 ✓ 时，在任务原位置播放约0.8秒青白光尘、拖尾、柔光与紫色星芒，再让其他任务补位。无需打开应用，不使用悬浮窗。5秒撤销立即出现，可在动画中撤销。动画采用Canvas预绘制20帧，由桌面内的ViewFlipper播放，无需每帧刷新整个组件。
+
+<img src="docs/widget-particles-preview.gif" width="640" alt="桌面粒子预绘制帧模拟预览" />
+
+动图来自Android Canvas测试输出，非vivo真机录屏；初始与结束画面在预览中延长以便观察，实际动作约0.8秒。由于小组件位图内存限制，同时最多保留两个正在播放的效果，快速连续完成时较早的效果可能提前结束；任务和撤销仍分别保存。实际播放流畅度需在OriginOS3真机确认。
