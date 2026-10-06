@@ -6,11 +6,11 @@
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="光点待办" android:textSize="21sp" android:textStyle="bold" android:textColor="#F4FCFF" android:fontFamily="sans-serif-medium" />
             <TextView android:id="@+id/widget_count" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="正在读取待办" android:textSize="11sp" android:textColor="#88ADB9" android:layout_marginTop="3dp" />
         </LinearLayout>
-        <TextClock android:id="@+id/widget_date" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:format12Hour="M月d日 EEEE" android:format24Hour="M月d日 EEEE" android:textSize="11sp" android:textColor="#B8DBE2" />
+        <TextClock android:id="@+id/widget_date" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:format12Hour="M月d日\nEEEE" android:format24Hour="M月d日\nEEEE" android:textSize="11sp" android:textColor="#B8DBE2" />
     </LinearLayout>
     <TextView android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="12dp" android:layout_marginBottom="6dp" android:background="@drawable/widget_line" />
     <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
-        <ListView android:id="@+id/widget_tasks" android:layout_width="match_parent" android:layout_height="match_parent" android:divider="@android:color/transparent" android:dividerHeight="4dp" android:scrollbars="none" android:clipToPadding="false" />
+        <ListView android:id="@+id/widget_tasks" android:layout_width="match_parent" android:layout_height="match_parent" android:divider="@android:color/transparent" android:dividerHeight="3dp" android:scrollbars="none" android:clipToPadding="false" />
         <TextView android:id="@+id/widget_empty" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="留一点空白给生活\n点击 ＋，记下下一件重要的事" android:textColor="#7F9AA9" android:textSize="13sp" android:lineSpacingExtra="6dp" />
     </FrameLayout>
     <LinearLayout android:id="@+id/widget_undo_section" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone" android:layout_marginTop="6dp">
