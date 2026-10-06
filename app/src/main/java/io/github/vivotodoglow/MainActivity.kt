@@ -143,8 +143,8 @@ class MainActivity : ComponentActivity() {
     private fun updateWidgetStatus() {
         val installed = getSystemService(AppWidgetManager::class.java)
             .getAppWidgetIds(ComponentName(this, GlowWidgetProvider::class.java)).size
-        widgetStatus.text = if (installed > 0) "桌面已添加 $installed 个待办组件 · 2.0.1"
-            else "尚未添加 · 无系统弹窗时，请点下方“手动添加” · 2.0.1"
+        widgetStatus.text = if (installed > 0) "桌面已添加 $installed 个待办组件 · 2.1.0"
+            else "尚未添加 · 无系统弹窗时，请点下方“手动添加” · 2.1.0"
     }
     private fun pinWidget() {
         val manager = getSystemService(AppWidgetManager::class.java)
@@ -171,7 +171,7 @@ class MainActivity : ComponentActivity() {
     }
     private fun showHelp() {
         AlertDialog.Builder(this).setTitle("让待办留在桌面")
-            .setMessage("桌面小组件展示前10项、当天日期和星期。点击任务可编辑，点击完成入口会打开此面板并播放光粒子消散。\n\n在此面板按住 ≡ 自由拖动排序，长按任务选择编辑、每日任务或截止日期。每日任务完成后约0.8秒回到第5位；不足5项时放在末尾，可以再次完成。\n\n完成或删除后有5秒撤销。截止日期是日期标记，不会发送提醒。任务只保存在手机，卸载会清空数据。\n\nvivo 桌面的小组件长按用于移动组件，因此排序和粒子动画在此面板中完成。新版不需要悬浮窗权限。")
+            .setMessage("桌面小组件展示前10项、当天日期和星期。桌面点 ✓ 直接完成，不打开应用；上方显示5秒倒计时和撤销按钮。点任务选中，再点底部 ↑ / ↓ 调整顺序，点“编辑”修改所选任务。\n\n在此面板按住 ≡ 自由拖动排序，长按任务选择编辑、每日任务或截止日期。每日任务完成后约0.8秒回到第5位；不足5项时放在末尾，可以再次完成。\n\n完成或删除后有5秒撤销。截止日期是日期标记，不会发送提醒。任务只保存在手机，卸载会清空数据。\n\nvivo 桌面的小组件长按用于移动组件，因此自由拖拽和粒子动画在此面板中完成，桌面使用按钮排序。新版不需要悬浮窗权限。")
             .setPositiveButton("添加到桌面") { _, _ -> pinWidget() }.setNegativeButton("知道了", null).show()
     }
     private fun chooseEdit(task: TodoTask) {

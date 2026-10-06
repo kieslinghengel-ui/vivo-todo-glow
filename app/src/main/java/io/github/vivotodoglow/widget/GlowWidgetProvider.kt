@@ -37,6 +37,8 @@ class GlowWidgetProvider : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
+            ACTION_TASK -> updateAsync(context, operation = intent.getStringExtra("operation"),
+                taskId = intent.getLongExtra(EXTRA_TASK_ID, 0), widgetId = intent.getIntExtra("widget_id", 0))
             ACTION_PINNED -> updateAsync(context)
             ACTION_UNDO -> updateAsync(context, undoId = intent.getLongExtra(EXTRA_TASK_ID, 0))
             ACTION_EXPIRE -> updateAsync(context, deadline = intent.getLongExtra(EXTRA_DEADLINE, 0))
@@ -45,7 +47,8 @@ class GlowWidgetProvider : AppWidgetProvider() {
         }
     }
 
-    private fun updateAsync(context: Context, undoId: Long? = null, deadline: Long? = null) {
+    private fun updateAsync(context: Context, undoId: Long? = null, deadline: Long? = null,
+        operation: String? = null, taskId: Long = 0, widgetId: Int = 0) {
         val result = goAsync()
         val app = context.applicationContext as GlowApp
         app.scope.launch(Dispatchers.IO) {
@@ -55,6 +58,10 @@ class GlowWidgetProvider : AppWidgetProvider() {
                 withTimeout(8_000) {
                     deadline?.let { delay((it - System.currentTimeMillis()).coerceIn(0, UNDO_WINDOW_MS)) }
                     if (undoId != null && undoId != 0L) app.repository.undo(undoId)
+                    if (operation == "select" && widgetId > 0 && taskId > 0) {
+                        context.getSharedPreferences("widget-selection", Context.MODE_PRIVATE)
+                            .edit().putLong(widgetId.toString(), taskId).apply()
+                    } else WidgetCommands.execute(app.repository, operation, taskId)
                     app.repository.cleanup()
                     refresh(context, app.repository.tasks.first())
                 }
@@ -70,6 +77,7 @@ class GlowWidgetProvider : AppWidgetProvider() {
 
     companion object {
         const val ACTION_PINNED = "io.github.vivotodoglow.widget.PINNED"
+        const val ACTION_TASK = "io.github.vivotodoglow.widget.TASK"
         const val ACTION_UNDO = "io.github.vivotodoglow.widget.UNDO"
         private const val ACTION_EXPIRE = "io.github.vivotodoglow.widget.EXPIRE"
         const val EXTRA_TASK_ID = "task_id"
@@ -97,15 +105,25 @@ class GlowWidgetProvider : AppWidgetProvider() {
             val pending = TaskPolicy.pending(tasks, now)
             val packageName = context.packageName
             val remote = RemoteViews(packageName, R.layout.widget_glow)
-            remote.setTextViewText(R.id.widget_count, "${TaskPolicy.active(tasks).size} 件待办")
+            val selectedId = context.getSharedPreferences("widget-selection", Context.MODE_PRIVATE).getLong(widgetId.toString(), 0)
+            val selected = TaskPolicy.active(tasks).find { it.id == selectedId }
+            remote.setTextViewText(R.id.widget_count, selected?.let { "已选：${it.title}" } ?: "点任务选中 · ↑↓排序")
             remote.setOnClickPendingIntent(R.id.widget_add, activity(context, widgetId * 10 + 1, Intent(context, MainActivity::class.java).putExtra("add", true)))
-            remote.setOnClickPendingIntent(R.id.widget_manage, activity(context, widgetId * 10 + 2, Intent(context, MainActivity::class.java)))
+            remote.setTextViewText(R.id.widget_manage, if (selected == null) "管理" else "编辑")
+            remote.setOnClickPendingIntent(R.id.widget_manage, activity(context, widgetId * 10 + 2,
+                Intent(context, MainActivity::class.java).apply { selected?.let { putExtra("edit", it.id) } }))
+            listOf(R.id.widget_up to "up", R.id.widget_down to "down").forEach { (view, operation) ->
+                remote.setBoolean(view, "setEnabled", selected != null)
+                remote.setOnClickPendingIntent(view, PendingIntent.getBroadcast(context, widgetId * 10 + if (operation == "up") 6 else 7,
+                    Intent(context, GlowWidgetProvider::class.java).setAction(ACTION_TASK)
+                        .putExtra("operation", operation).putExtra(EXTRA_TASK_ID, selected?.id ?: 0),
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
+            }
             remote.setOnClickPendingIntent(R.id.widget_heading, activity(context, widgetId * 10 + 3, Intent(context, MainActivity::class.java)))
 
-            // Collection entries merge only their own extras into this explicit activity intent.
-            val template = PendingIntent.getActivity(context, widgetId * 10 + 4,
-                WidgetActions.authorize(context, Intent(context, MainActivity::class.java).setAction("widget.tasks.$widgetId")
-                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)),
+            // Direct private broadcasts keep completion and selection inside the desktop.
+            val template = PendingIntent.getBroadcast(context, widgetId * 10 + 4,
+                Intent(context, GlowWidgetProvider::class.java).setAction(ACTION_TASK).putExtra("widget_id", widgetId),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
             remote.setPendingIntentTemplate(R.id.widget_tasks, template)
             val items = RemoteViews.RemoteCollectionItems.Builder().setHasStableIds(true).setViewTypeCount(1)
@@ -116,8 +134,9 @@ class GlowWidgetProvider : AppWidgetProvider() {
                 item.setTextViewText(R.id.widget_task_subtitle, subtitle)
                 item.setViewVisibility(R.id.widget_task_subtitle, if (subtitle.isEmpty()) View.GONE else View.VISIBLE)
                 item.setContentDescription(R.id.widget_task_complete, "完成：${task.title}")
-                item.setOnClickFillInIntent(R.id.widget_task_body, Intent().putExtra("edit", task.id))
-                item.setOnClickFillInIntent(R.id.widget_task_complete, Intent().putExtra("complete", task.id))
+                item.setInt(R.id.widget_task_title, "setTextColor", if (task.id == selected?.id) 0xff81e5ef.toInt() else 0xffeffbff.toInt())
+                item.setOnClickFillInIntent(R.id.widget_task_body, Intent().putExtra("operation", "select").putExtra(EXTRA_TASK_ID, task.id))
+                item.setOnClickFillInIntent(R.id.widget_task_complete, Intent().putExtra("operation", "complete").putExtra(EXTRA_TASK_ID, task.id))
                 items.addItem(task.id, item)
             }
             remote.setRemoteAdapter(R.id.widget_tasks, items.build())
@@ -125,6 +144,17 @@ class GlowWidgetProvider : AppWidgetProvider() {
 
             remote.setViewVisibility(R.id.widget_undo_section, if (pending.isEmpty()) View.GONE else View.VISIBLE)
             remote.setTextViewText(R.id.widget_undo_heading, "${pending.size} 项操作可撤销 · 5 秒内")
+            pending.maxByOrNull { it.deleteAfter ?: 0 }?.let { latest ->
+                remote.setTextViewText(R.id.widget_latest_title, "已${latest.removalKind ?: "完成"} · ${latest.title}")
+                val remaining = ((latest.deleteAfter ?: now) - now).coerceAtLeast(0)
+                remote.setChronometerCountDown(R.id.widget_latest_timer, true)
+                remote.setChronometer(R.id.widget_latest_timer, SystemClock.elapsedRealtime() + remaining, "%s", remaining > 0)
+                remote.setOnClickPendingIntent(R.id.widget_latest_undo, PendingIntent.getBroadcast(context, widgetId * 10 + 8,
+                    Intent(context, GlowWidgetProvider::class.java).setAction(ACTION_UNDO).putExtra(EXTRA_TASK_ID, latest.id),
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
+            }
+            // The latest undo is a plain button, usable even if a launcher delays its list adapter.
+            remote.setViewVisibility(R.id.widget_undos, if (pending.size > 1) View.VISIBLE else View.GONE)
             val undoTemplate = PendingIntent.getBroadcast(context, widgetId * 10 + 5,
                 Intent(context, GlowWidgetProvider::class.java).setAction(ACTION_UNDO),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)

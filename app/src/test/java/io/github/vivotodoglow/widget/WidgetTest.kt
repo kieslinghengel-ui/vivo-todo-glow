@@ -113,32 +113,55 @@ class WidgetTest {
         assertEquals(View.VISIBLE, root.findViewById<View>(R.id.widget_empty).visibility)
         assertNotNull(root.findViewById<View>(R.id.widget_add))
     }
+    @Test fun latestUndoIsVisibleAboveTasksAndWorksWithoutListAdapter() {
+        render(emptyList())
+        val root = render(listOf(TodoTask(12, "误点的任务", 1, System.currentTimeMillis() + 5000, "完成")))
+        root.measure(View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(600, View.MeasureSpec.EXACTLY))
+        root.layout(0, 0, 480, 600)
+        assertEquals(View.GONE, root.findViewById<View>(R.id.widget_undos).visibility)
+        val banner = root.findViewById<View>(R.id.widget_undo_section)
+        assertEquals(View.VISIBLE, banner.visibility)
+        assertTrue(banner.bottom <= root.findViewById<View>(R.id.widget_tasks).parent.let { it as View }.top)
+        root.findViewById<View>(R.id.widget_latest_undo).performClick()
+        val app = Shadows.shadowOf(context as Application)
+        assertNull(app.nextStartedActivity)
+        assertEquals(12L, app.broadcastIntents.last { it.action == GlowWidgetProvider.ACTION_UNDO }.getLongExtra(GlowWidgetProvider.EXTRA_TASK_ID, 0))
+    }
+    @Test fun selectedTaskMovesThroughDesktopButtons() {
+        context.getSharedPreferences("widget-selection", Context.MODE_PRIVATE).edit().putLong("7", 41).commit()
+        val root = render(listOf(TodoTask(41, "选中任务", 1)))
+        root.findViewById<View>(R.id.widget_down).performClick()
+        val app = Shadows.shadowOf(context as Application)
+        assertNull(app.nextStartedActivity)
+        val sent = app.broadcastIntents.last { it.action == GlowWidgetProvider.ACTION_TASK }
+        assertEquals("down", sent.getStringExtra("operation"))
+        assertEquals(41L, sent.getLongExtra(GlowWidgetProvider.EXTRA_TASK_ID, 0))
+    }
 
-    @Test fun taskClickReusesActivityAndPassesOnlyItsOwnTaskId() {
+    @Test fun taskClickSelectsOnDesktopWithoutOpeningActivity() {
         val root = render(listOf(TodoTask(41, "打开已有面板", 1)))
         root.measure(View.MeasureSpec.makeMeasureSpec(656, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(1320, View.MeasureSpec.EXACTLY))
         root.layout(0, 0, 656, 1320)
         val list = root.findViewById<ListView>(R.id.widget_tasks)
         list.getChildAt(0).findViewById<View>(R.id.widget_task_body).performClick()
-        val started = Shadows.shadowOf(context as Application).nextStartedActivity
-        assertNotNull(started)
-        assertEquals(41L, started.getLongExtra("edit", -1))
-        assertFalse(started.hasExtra("complete"))
-        assertTrue(started.flags and Intent.FLAG_ACTIVITY_CLEAR_TOP != 0)
-        assertTrue(started.flags and Intent.FLAG_ACTIVITY_SINGLE_TOP != 0)
+        val app = Shadows.shadowOf(context as Application)
+        assertNull(app.nextStartedActivity)
+        val sent = app.broadcastIntents.last { it.action == GlowWidgetProvider.ACTION_TASK }
+        assertEquals(41L, sent.getLongExtra(GlowWidgetProvider.EXTRA_TASK_ID, 0))
+        assertEquals("select", sent.getStringExtra("operation"))
     }
 
-    @Test fun completionButtonRoutesTheSelectedTaskToTheAnimatedPanel() {
+    @Test fun completionButtonBroadcastsSelectedTaskWithoutOpeningActivity() {
         val root = render(listOf(TodoTask(41, "保留第一项", 1), TodoTask(99, "完成第二项", 2)))
         root.measure(View.MeasureSpec.makeMeasureSpec(656, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(1320, View.MeasureSpec.EXACTLY))
         root.layout(0, 0, 656, 1320)
         val list = root.findViewById<ListView>(R.id.widget_tasks)
         list.getChildAt(1).findViewById<View>(R.id.widget_task_complete).performClick()
-        val started = Shadows.shadowOf(context as Application).nextStartedActivity
-        assertNotNull(started)
-        assertEquals(99L, started.getLongExtra("complete", -1))
-        assertTrue(WidgetActions.isAuthorized(context, started))
-        assertFalse(started.hasExtra("edit"))
+        val app = Shadows.shadowOf(context as Application)
+        assertNull(app.nextStartedActivity)
+        val sent = app.broadcastIntents.last { it.action == GlowWidgetProvider.ACTION_TASK }
+        assertEquals(99L, sent.getLongExtra(GlowWidgetProvider.EXTRA_TASK_ID, 0))
+        assertEquals("complete", sent.getStringExtra("operation"))
     }
 
     @Test fun exportedLauncherRejectsForgedAutomaticCompletion() {

@@ -1,6 +1,6 @@
 # 光点待办 · vivo-todo-glow
 
-适配 Android 13 及以上的中文本地待办，重点面向 vivo Y36m。2.0.1 使用真正的桌面小组件，保留 vivo 原桌面；任务与编辑页面使用同一份本地数据。
+适配 Android 13 及以上的中文本地待办，重点面向 vivo Y36m。2.1.0 使用真正的桌面小组件，保留 vivo 原桌面；任务与编辑页面使用同一份本地数据。
 
 <img src="docs/widget-preview.png" width="280" alt="桌面小组件布局预览" /> <img src="docs/panel-preview.png" width="280" alt="应用内任务管理和光粒子布局预览" />
 
@@ -10,7 +10,7 @@
 
 - 深蓝渐变、青白光晕和细腻圆角；右上角显示当天日期和星期。
 - 桌面小组件展示排序最前的 10 项，任务保存总数不限。完成普通任务后，下一项自动补入。
-- 小组件可调整大小，列表可上下滚动；点击任务编辑，点击“完成”进入应用页面并播放约 0.8 秒光粒子消散。
+- 小组件可调整大小，列表可上下滚动；点任务选中，底部 ↑ / ↓ 直接调整顺序，点“编辑”修改选中任务；点 ✓ 直接完成，桌面上方提供5秒撤销。
 - 在应用页面按住任务右侧的 `≡` 自由拖动排序；长按任务选择编辑、每日任务、截止日期或删除。
 - 在应用页面左滑任务只展示“完成”按钮，点击按钮才执行完成。完成时青白色粒子与柔和光雾散开，后面的任务平滑补位。
 - 每日任务完成后暂时隐藏，约 0.8 秒后重新出现在第 5 项；不足 5 项时放在末尾。它可以再次完成。
@@ -20,17 +20,17 @@
 
 ## 桌面操作范围
 
-Android 小组件的手势主要是点击和纵向滚动，[官方说明](https://developer.android.com/develop/ui/views/appwidgets/overview#gestures)解释了桌面导航对小组件手势的限制。因此，本版在桌面提供任务列表、日期、新增、编辑入口与撤销；粒子动画、自由拖动任务和长按任务菜单在打开的应用页面中完成。
+Android 小组件的手势主要是点击和纵向滚动，[官方说明](https://developer.android.com/develop/ui/views/appwidgets/overview#gestures)解释了桌面导航对小组件手势的限制。因此，本版在桌面提供直接完成、按钮排序、任务列表、日期、新增、编辑入口与撤销；粒子动画、自由拖动任务和长按任务菜单在打开的应用页面中完成。
 
 如需在桌面原地自由拖动任务和播放自绘粒子动画，需要另做支持这些交互的桌面启动器。当前版本继续使用 vivo 原桌面，不替换系统桌面。
 
 ## 下载与安装
 
-[2.0.1 下载页](https://github.com/kieslinghengel-ui/vivo-todo-glow/releases/tag/v2.0.1) · [安装包](https://github.com/kieslinghengel-ui/vivo-todo-glow/releases/download/v2.0.1/vivo-todo-glow-2.0.1.apk)
+[2.1.0 下载页](https://github.com/kieslinghengel-ui/vivo-todo-glow/releases/tag/v2.1.0) · [安装包](https://github.com/kieslinghengel-ui/vivo-todo-glow/releases/download/v2.1.0/vivo-todo-glow-2.1.0.apk)
 
 打开应用，点“＋ 添加到桌面”；如果系统未出现添加入口，在桌面空白处长按，进入“组件”或“原子组件”，找到“光点待办”并拖到桌面。详细步骤见 [安装说明](docs/安装说明.md)。
 
-2.0.1 不使用悬浮窗、使用情况访问、通知或无障碍权限。从正式 1.0.0 覆盖安装可保留原任务，不要先卸载。
+2.1.0 不使用悬浮窗、使用情况访问、通知或无障碍权限。从正式 1.0.0 覆盖安装可保留原任务，不要先卸载。
 
 ## 每日任务与撤销
 
@@ -68,7 +68,7 @@ Kotlin + Android Views；系统 `AppWidgetProvider` / `RemoteViews` 实现桌面
 
 [FloatingOverlay](https://github.com/florinzaicu/FloatingOverlay)、[ExplosionField](https://github.com/tyrantgit/ExplosionField) 和 [Tasks.org](https://github.com/tasks/tasks) 用于方案参考。本项目的任务与粒子实现独立编写，没有复制其源码。依赖及许可说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。项目使用 MIT 许可。
 
-## 2.0.1 添加兼容性修复
+## 2.1.0 添加兼容性修复
 
 针对 Android 13 / OriginOS 3 上点击添加无反应，检查桌面是否接受添加请求；不支持、拒绝或异常时显示手动添加说明。请求受理不会标记为已添加，实际添加数量在返回应用时刷新。始终提供「手动添加小组件 / 添加帮助」和前往桌面入口。
 
