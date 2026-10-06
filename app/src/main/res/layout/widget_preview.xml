@@ -1,0 +1,7 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="16dp" android:background="@drawable/widget_panel">
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="光点待办" android:textColor="#F4FCFF" android:textSize="21sp" android:textStyle="bold" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="日期与星期 · 最多10项 · 可上下滚动" android:textColor="#88ADB9" android:textSize="11sp" android:layout_marginTop="8dp" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="○  记下今天的重要事项\n\n○  让清单留在桌面\n\n＋  添加任务" android:textColor="#B5FAFF" android:textSize="15sp" android:layout_marginTop="18dp" />
+</LinearLayout>

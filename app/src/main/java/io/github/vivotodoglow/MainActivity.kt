@@ -2,6 +2,7 @@ package io.github.vivotodoglow
 
 import android.app.AlertDialog
 import android.app.DatePickerDialog
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Intent
@@ -24,6 +25,7 @@ import io.github.vivotodoglow.data.*
 import io.github.vivotodoglow.ui.*
 import io.github.vivotodoglow.widget.GlowWidgetProvider
 import io.github.vivotodoglow.widget.WidgetActions
+import io.github.vivotodoglow.widget.WidgetPinRequest
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
@@ -34,6 +36,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var undo: UndoListView
     private lateinit var count: TextView
     private lateinit var scroll: ScrollView
+    private lateinit var widgetStatus: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,6 +70,9 @@ class MainActivity : ComponentActivity() {
         widget.addView(action("＋ 添加到桌面") { pinWidget() }, LinearLayout.LayoutParams(0, dp(46), 1f))
         widget.addView(action("使用说明") { showHelp() }, LinearLayout.LayoutParams(dp(88), dp(46)).apply { leftMargin = dp(8) })
         content.addView(widget)
+        widgetStatus = label("", 12f, GLOW).apply { setPadding(0, dp(10), 0, dp(6)) }
+        content.addView(widgetStatus)
+        content.addView(action("手动添加小组件 / 添加帮助") { showWidgetHelp() })
         content.space(20)
         val heading = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
         count = label("今天的清单", 18f).apply { typeface = Typeface.DEFAULT_BOLD }
@@ -130,16 +136,38 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+    override fun onResume() {
+        super.onResume()
+        updateWidgetStatus()
+    }
+    private fun updateWidgetStatus() {
+        val installed = getSystemService(AppWidgetManager::class.java)
+            .getAppWidgetIds(ComponentName(this, GlowWidgetProvider::class.java)).size
+        widgetStatus.text = if (installed > 0) "桌面已添加 $installed 个待办组件 · 2.0.1"
+            else "尚未添加 · 无系统弹窗时，请点下方“手动添加” · 2.0.1"
+    }
     private fun pinWidget() {
         val manager = getSystemService(AppWidgetManager::class.java)
-        if (manager.isRequestPinAppWidgetSupported) {
-            manager.requestPinAppWidget(ComponentName(this, GlowWidgetProvider::class.java), null, null)
-        } else showWidgetHelp()
+        val callback = PendingIntent.getBroadcast(this, 701,
+            Intent(this, GlowWidgetProvider::class.java).setAction(GlowWidgetProvider.ACTION_PINNED),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val result = WidgetPinRequest.request({ manager.isRequestPinAppWidgetSupported }) {
+            manager.requestPinAppWidget(ComponentName(this, GlowWidgetProvider::class.java),
+                Bundle().apply { putParcelable(AppWidgetManager.EXTRA_APPWIDGET_PREVIEW,
+                    RemoteViews(packageName, R.layout.widget_preview)) }, callback)
+        }
+        if (result == WidgetPinRequest.Result.MANUAL) showWidgetHelp()
+        else {
+            widgetStatus.text = "已请求桌面添加；没有弹窗？点下方“手动添加小组件”。"
+            Toast.makeText(this, "请在桌面确认添加；无弹窗可手动添加", Toast.LENGTH_LONG).show()
+        }
     }
     private fun showWidgetHelp() {
         AlertDialog.Builder(this).setTitle("添加桌面小组件")
-            .setMessage("在 vivo 桌面空白处长按，进入“组件”或“原子组件”，找到“光点待办”，将它拖到桌面。可以调整组件大小；列表最多展示前10项，空间不足时上下滚动。不同 OriginOS 版本的入口名称可能不同。")
-            .setPositiveButton("知道了", null).show()
+            .setMessage("OriginOS 3：回到桌面，在空白处长按或双指捏合，打开“原子组件 / 添加组件”。查找普通 Android 小组件、桌面挂件或应用组件列表中的“光点待办”，长按预览拖到桌面。入口名称因系统版本而异。\n\n默认占4×3格，请预留空位；添加后可长按拉大。最多10项，空间不足时上下滚动。\n\n系统自动添加无弹窗时，仍可使用上述手动入口。若列表仍找不到，覆盖安装后打开本应用一次，再重新进入桌面组件列表。无需卸载。")
+            .setPositiveButton("前往桌面") { _, _ ->
+                startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME))
+            }.setNegativeButton("知道了", null).show()
     }
     private fun showHelp() {
         AlertDialog.Builder(this).setTitle("让待办留在桌面")

@@ -37,6 +37,7 @@ class GlowWidgetProvider : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
+            ACTION_PINNED -> updateAsync(context)
             ACTION_UNDO -> updateAsync(context, undoId = intent.getLongExtra(EXTRA_TASK_ID, 0))
             ACTION_EXPIRE -> updateAsync(context, deadline = intent.getLongExtra(EXTRA_DEADLINE, 0))
             Intent.ACTION_TIME_CHANGED, Intent.ACTION_TIMEZONE_CHANGED, Intent.ACTION_LOCALE_CHANGED -> updateAsync(context)
@@ -68,6 +69,7 @@ class GlowWidgetProvider : AppWidgetProvider() {
     }
 
     companion object {
+        const val ACTION_PINNED = "io.github.vivotodoglow.widget.PINNED"
         const val ACTION_UNDO = "io.github.vivotodoglow.widget.UNDO"
         private const val ACTION_EXPIRE = "io.github.vivotodoglow.widget.EXPIRE"
         const val EXTRA_TASK_ID = "task_id"

@@ -1,6 +1,6 @@
 # 光点待办 · vivo-todo-glow
 
-适配 Android 13 及以上的中文本地待办，重点面向 vivo Y36m。2.0.0 使用真正的桌面小组件，保留 vivo 原桌面；任务与编辑页面使用同一份本地数据。
+适配 Android 13 及以上的中文本地待办，重点面向 vivo Y36m。2.0.1 使用真正的桌面小组件，保留 vivo 原桌面；任务与编辑页面使用同一份本地数据。
 
 <img src="docs/widget-preview.png" width="280" alt="桌面小组件布局预览" /> <img src="docs/panel-preview.png" width="280" alt="应用内任务管理和光粒子布局预览" />
 
@@ -26,11 +26,11 @@ Android 小组件的手势主要是点击和纵向滚动，[官方说明](https:
 
 ## 下载与安装
 
-[2.0.0 下载页](https://github.com/kieslinghengel-ui/vivo-todo-glow/releases/tag/v2.0.0) · [安装包](https://github.com/kieslinghengel-ui/vivo-todo-glow/releases/download/v2.0.0/vivo-todo-glow-2.0.0.apk)
+[2.0.1 下载页](https://github.com/kieslinghengel-ui/vivo-todo-glow/releases/tag/v2.0.1) · [安装包](https://github.com/kieslinghengel-ui/vivo-todo-glow/releases/download/v2.0.1/vivo-todo-glow-2.0.1.apk)
 
 打开应用，点“＋ 添加到桌面”；如果系统未出现添加入口，在桌面空白处长按，进入“组件”或“原子组件”，找到“光点待办”并拖到桌面。详细步骤见 [安装说明](docs/安装说明.md)。
 
-2.0.0 不使用悬浮窗、使用情况访问、通知或无障碍权限。从正式 1.0.0 覆盖安装可保留原任务，不要先卸载。
+2.0.1 不使用悬浮窗、使用情况访问、通知或无障碍权限。从正式 1.0.0 覆盖安装可保留原任务，不要先卸载。
 
 ## 每日任务与撤销
 
@@ -67,3 +67,11 @@ Kotlin + Android Views；系统 `AppWidgetProvider` / `RemoteViews` 实现桌面
 ## 参考与许可
 
 [FloatingOverlay](https://github.com/florinzaicu/FloatingOverlay)、[ExplosionField](https://github.com/tyrantgit/ExplosionField) 和 [Tasks.org](https://github.com/tasks/tasks) 用于方案参考。本项目的任务与粒子实现独立编写，没有复制其源码。依赖及许可说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。项目使用 MIT 许可。
+
+## 2.0.1 添加兼容性修复
+
+针对 Android 13 / OriginOS 3 上点击添加无反应，检查桌面是否接受添加请求；不支持、拒绝或异常时显示手动添加说明。请求受理不会标记为已添加，实际添加数量在返回应用时刷新。始终提供「手动添加小组件 / 添加帮助」和前往桌面入口。
+
+默认尺寸由4×6缩为4×3，允许缩小和拉大；前10项仍可滚动。组件选择器使用独立静态预览，不依赖列表加载。OriginOS 3 可在桌面空白处长按或双指捏合，进入添加组件；普通 Android 组件可能位于桌面挂件或应用组件分组，具体入口以手机为准。覆盖安装后打开一次应用，再进入组件列表。无需卸载，也不需要悬浮窗权限。
+
+尚未连接 vivo Y36m 真机，无法确认该桌面是否显示自动添加弹窗；不以自动测试代替真机结论。

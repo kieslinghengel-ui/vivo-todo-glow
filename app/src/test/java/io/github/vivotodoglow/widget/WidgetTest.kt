@@ -37,6 +37,13 @@ import java.time.LocalDate
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class WidgetTest {
     private val context get() = ApplicationProvider.getApplicationContext<Context>()
+    @Test fun pickerPreviewInflatesWithoutWidgetHostOrCollectionAdapter() {
+        val root = android.widget.RemoteViews(context.packageName, R.layout.widget_preview)
+            .apply(context, android.widget.FrameLayout(context))
+        assertTrue(root is android.widget.LinearLayout)
+        assertEquals(3, (root as android.widget.LinearLayout).childCount)
+        assertEquals("光点待办", (root.getChildAt(0) as TextView).text.toString())
+    }
     private fun render(tasks: List<TodoTask>, hostContext: Context = context): View {
         // Android deliberately ignores setRemoteAdapter unless its parent is a real widget
         // host. A plain FrameLayout would silently skip the collection adapter action.
