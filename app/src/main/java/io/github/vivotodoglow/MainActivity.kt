@@ -23,6 +23,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import io.github.vivotodoglow.data.*
 import io.github.vivotodoglow.ui.*
 import io.github.vivotodoglow.widget.GlowWidgetProvider
+import io.github.vivotodoglow.widget.WidgetActions
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
@@ -110,7 +111,8 @@ class MainActivity : ComponentActivity() {
     private fun handleIntent(source: Intent) {
         if (source.getBooleanExtra("add", false)) edit(null)
         val editId = source.getLongExtra("edit", -1)
-        val completeId = source.getLongExtra("complete", -1)
+        val completeId = if (WidgetActions.isAuthorized(this, source)) source.getLongExtra("complete", -1) else -1
+        WidgetActions.clear(source)
         source.removeExtra("add"); source.removeExtra("edit"); source.removeExtra("complete")
         if (editId < 0 && completeId < 0) return
         lifecycleScope.launch {

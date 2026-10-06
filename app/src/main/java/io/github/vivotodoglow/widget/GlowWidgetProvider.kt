@@ -102,8 +102,8 @@ class GlowWidgetProvider : AppWidgetProvider() {
 
             // Collection entries merge only their own extras into this explicit activity intent.
             val template = PendingIntent.getActivity(context, widgetId * 10 + 4,
-                Intent(context, MainActivity::class.java).setAction("widget.tasks.$widgetId")
-                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                WidgetActions.authorize(context, Intent(context, MainActivity::class.java).setAction("widget.tasks.$widgetId")
+                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
             remote.setPendingIntentTemplate(R.id.widget_tasks, template)
             val items = RemoteViews.RemoteCollectionItems.Builder().setHasStableIds(true).setViewTypeCount(1)

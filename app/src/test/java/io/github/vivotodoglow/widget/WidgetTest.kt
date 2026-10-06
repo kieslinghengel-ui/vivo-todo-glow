@@ -115,7 +115,13 @@ class WidgetTest {
         val started = Shadows.shadowOf(context as Application).nextStartedActivity
         assertNotNull(started)
         assertEquals(99L, started.getLongExtra("complete", -1))
+        assertTrue(WidgetActions.isAuthorized(context, started))
         assertFalse(started.hasExtra("edit"))
+    }
+
+    @Test fun exportedLauncherRejectsForgedAutomaticCompletion() {
+        assertFalse(WidgetActions.isAuthorized(context, Intent().putExtra("complete", 99L)))
+        assertFalse(WidgetActions.isAuthorized(context, Intent().putExtra("complete", 99L).putExtra("widget_action_key", "forged")))
     }
 
     @Test fun twoHundredPercentFontExpandsRowsWithoutClippingTitleOrMetadata() {
